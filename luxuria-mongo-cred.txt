@@ -1,2 +1,5 @@
 username :- luxuria
 password :- VUl2y15NZW7a3DHS
+
+
+mongodb+srv://luxuria:VUl2y15NZW7a3DHS@luxuriacluster.daqqybf.mongodb.net/luxuria?retryWrites=true&w=majority
