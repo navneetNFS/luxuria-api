@@ -31,11 +31,14 @@ const userSchema = new Schema({
         type: String,
         required: [true, "Pease enter your role"],
         default: "user"
+    },
+    verifyed: {
+        type: Boolean,
+        default: false
     }
 })
 
 userSchema.pre("save", async function (next) {
-    console.log("executed");
     if (!this.isModified("password")) {
         next()
     }

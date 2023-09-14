@@ -1,32 +1,48 @@
 const User = require('../models/users.mdl')
 const error = require('../middleware/error')
+const mailer = require('nodemailer');
+const crypto = require('crypto');
+const { log } = require('console');
+
+let transporter = mailer.createTransport({
+    service: "gmail",
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: 'navneettaneja.fullstack@gmail.com',
+        pass: 'pqnbhbgorekhgjet'
+    }
+});
+
 
 module.exports.loginUser = async (req, res, next) => {
-    if(!req.cookies.tokken){
+
+    if (!req.cookies.tokken) {
         const { email, password } = req.body;
         if (!email || !password) {
             error.ErrorHandler(400, "Please Enter Both Email and Password", res)
         }
-    
+
         const user = await User.findOne({ email }).select("+password")
         if (!user) {
             error.ErrorHandler(400, "Invalid Email or Password", res)
         }
-    
+
         const isPasswordMatched = await user.confirmPassword(password)
         if (!isPasswordMatched) {
             error.ErrorHandler(400, "Invalid Email or Password", res)
         }
-    
+
         const tokken = user.getJWTTokken();
         res.clearCookie('tokken');
         res.clearCookie('user');
         res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
         res.cookie('user', JSON.stringify(user), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
-        res.json({ success: true, user, tokken });
+        res.status(201).json({ success: true, user, tokken });
     }
-    else{
-        res.json({success: true , tokken : req.cookies.tokken , user : JSON.parse(req.cookies.user)})
+    else {
+        res.status(201).json({ success: true, tokken: req.cookies.tokken, user: JSON.parse(req.cookies.user) })
     }
 }
 
@@ -39,32 +55,203 @@ module.exports.createUser = (req, res, next) => {
         res.clearCookie('user');
         res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
         res.cookie('user', JSON.stringify(user), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
-        res.json({ success: true, user, tokken });
+        res.status(201).json({ success: true, user, tokken });
     }).catch(err => {
         error.ErrorHandler(501, err.message, res)
     })
 }
 
+module.exports.getemailVerificationMail = (req, res, next) => {
+    const user = JSON.parse(req.cookies.user)
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp_lst = String(otp).split('')
+    const [one, two, three, four, five, six] = otp_lst
+
+    res.clearCookie('otp');
+    res.cookie('otp', otp);
+
+    let mailOptions = {
+        from: 'navneettaneja.fullstack@gmail.com',
+        to: user.email,
+        subject: 'Otp for Email Confirmation',
+        text: 'This is a test email sent using nodemailer',
+        html: `
+        <!DOCTYPE html>
+    <html lang="en">
+    
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Confirmation</title>
+    </head>
+    
+    <body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
+    <table style="width: 100%;height: 100vh;padding: 15px;">
+        <tr>
+            <td>
+                <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
+                    cellpadding="0">
+                    <tr>
+                        <td style="background: gold;text-align: center;padding: 10px 15px;"><a
+                                href="javascript: void(0)">Luxuria</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 25px;">
+                            <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Please confirm your email
+                                address</h1>
+                            <p
+                                style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">
+                                Thanks for interested in Luxuria. We are happy to have you. Please verify this 6 digit
+                                otp for succesfully sign up.</p>
+                            <p
+                                style="text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;">
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${one}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${two}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${three}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${four}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${five}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${six}</span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Didn't sign up for
+                            Luxuriya? <a href="javascript: void(0)">Let us Know</a></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    
+    </body>
+    
+    </html>
+        `
+    };
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.log(err)
+        }
+        else {
+            console.log("Email sent:" + info.response)
+        }
+    })
+
+    res.status(201).json({ success: true, otp })
+}
+
+module.exports.postemailVerification = (req, res) => {
+    const user = JSON.parse(req.cookies.user)
+    const { _id } = user;
+    const enteredOtp = Number(req.body.otp);
+
+    const real_otp = Number(req.cookies.otp);
+
+    if (enteredOtp == real_otp) {
+        set_val = { verifyed: true }
+        User.findByIdAndUpdate(_id, set_val)
+            .then(() => {
+                res.clearCookie('otp')
+                res.clearCookie('user')
+                res.clearCookie('tokken')
+            })
+            .then(() => {
+                User.findById(_id)
+                    .then(user => {
+                        const tokken = user.getJWTTokken()
+                        res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
+                        res.cookie('user', JSON.stringify(user), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
+
+
+                        let mailOptions = {
+                            from: 'navneettaneja.fullstack@gmail.com',
+                            to: user.email,
+                            subject: 'Welcome to Luxuria',
+                            text: 'This is a test email sent using nodemailer',
+                            html: `
+                            <!DOCTYPE html>
+                            <html lang="en">
+                            
+                            <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Welcome to Luxuria</title>
+                            </head>
+                            
+                            <body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
+                                <table style="width: 100%;height: 100vh;padding: 15px;">
+                                    <tr>
+                                        <td>
+                                            <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
+                                                cellpadding="0">
+                                                <tr>
+                                                    <td style="background: gold;text-align: center;padding: 10px 15px;"><a
+                                                            href="javascript: void(0)">Luxuria</a></td>
+                                                </tr>
+                                                <tr >
+                                                    <td style="padding-top: 25px;">
+                                                        <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Welcome to Luxuria</h1>
+                                                        <p style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">Thanks for signing up to Luxuria. We are happy to have you. Please verify this 6 digit otp for succesfully sign up.</p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Contact us in case you have query <a href="javascript: void(0)">Link Here</a></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            
+                            </body>
+                            
+                            </html>`
+                        };
+                        transporter.sendMail(mailOptions, (err, info) => {
+                            if (err) {
+                                console.log(err)
+                            }
+                            else {
+                                console.log("Email sent:" + info.response)
+                            }
+                        })
+
+                        res.status(201).json({ success: true, message: "Email Verified" })
+                    })
+                    .catch(err => error.ErrorHandler(501, err.message, res))
+            })
+            .catch(err => error.ErrorHandler(501, err.message, res))
+    }
+    else {
+        error.ErrorHandler(501, "Otp Not Matched", res)
+    }
+}
+
 module.exports.getUsers = (req, res, next) => {
-    if(req.cookies.tokken){
+    if (req.cookies.tokken) {
         User.find()
-        .then(users => {
-            res.json({success:true,users})
-        })
-        .catch(err => error.ErrorHandler(400,err.message,res))
+            .then(users => {
+                res.status(201).json({ success: true, users })
+            })
+            .catch(err => error.ErrorHandler(400, err.message, res))
     }
 }
 
 module.exports.editUser = (req, res, next) => {
     const userId = req.params.userId;
     const data = req.body;
-    const user = User.findByIdAndUpdate(userId,data)
+    const user = User.findByIdAndUpdate(userId, data)
     user.then(() => {
         res.clearCookie('tokken');
         res.clearCookie('user');
-        res.status(201).json({success:true,message:"User Updated Successfuly"})
+        res.status(201).json({ success: true, message: "User Updated Successfuly" })
     })
-    .catch(err => { error.ErrorHandler(501, err.message, res) });
+        .catch(err => { error.ErrorHandler(501, err.message, res) });
 }
 
 
@@ -74,13 +261,129 @@ module.exports.deleteUser = (req, res, next) => {
     user.then(() => {
         res.clearCookie('tokken');
         res.clearCookie('user');
-        res.status(201).json({success:true,message:"User Deleted Successfuly"})
+        res.status(201).json({ success: true, message: "User Deleted Successfuly" })
     })
-    .catch(err => { error.ErrorHandler(501, err.message, res) });
+        .catch(err => { error.ErrorHandler(501, err.message, res) });
 }
+
+
+module.exports.resetPwdEmail = async (req, res, next) => {
+    const { email, password } = req.body
+    if (!email || !password) {
+        error.ErrorHandler(501, "Invalid Email Or Passowrd")
+    }
+
+    const user = await User.findOne({ email }).select("+password")
+
+    const isPwdMatched = await user.confirmPassword(password)
+
+    if (!isPwdMatched) {
+        error.ErrorHandler(501, "Invalid Email Or Passowrd")
+    }
+
+    const recoverTKN = crypto.createHash('sha256', process.env.RECOVER_TOKKEN + email).digest('hex')
+
+    res.cookie('recoverTkn', String(recoverTKN), { maxAge: process.env.RECOVER_EXPIRY * 24 * 60 * 60 * 1000 })
+
+    res.status(201).json({ success: true, recoverTokken: recoverTKN })
+}
+
+
+module.exports.getresetPwdOtp = (req, res, next) => {
+    const recoverTKN = req.cookies.recoverTkn
+    if (!recoverTKN) {
+        error.ErrorHandler(501, "Please confirm previous passoword", res)
+    }
+    const user = JSON.parse(req.cookies.user)
+    const resetOtp = Math.floor(100000 + Math.random() * 900000);
+    const otp_lst = String(resetOtp).split('')
+    const [one, two, three, four, five, six] = otp_lst
+
+
+    let mailOptions = {
+        from: 'navneettaneja.fullstack@gmail.com',
+        to: user.email,
+        subject: 'Otp for Reset Password',
+        text: 'This is a test email sent using nodemailer',
+        html: `
+        <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+</head>
+
+<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
+    <table style="width: 100%;height: 100vh;padding: 15px;">
+        <tr>
+            <td>
+                <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
+                    cellpadding="0">
+                    <tr>
+                        <td style="background: gold;text-align: center;padding: 10px 15px;"><a
+                                href="javascript: void(0)">Luxuria</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 25px;">
+                            <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Reset Password</h1>
+                            <p
+                                style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">We have shared you an 6 digit otp for reset you password. this otp is valid for 30 mins</p>
+                            <p
+                                style="text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;">
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${one}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${two}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${three}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${four}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${five}</span>
+                                <span
+                                    style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${six}</span>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Contact us in case you have query <a href="javascript: void(0)">Link Here</a></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>`
+    };
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.log(err)
+        }
+        else {
+            console.log("Email sent:" + info.response)
+        }
+    })
+
+    res.clearCookie('resetOtp');
+    res.cookie('resetOtp', resetOtp);
+
+    res.status(201).json({ success: true, otp: resetOtp })
+}
+
+
+module.exports.resetPwdOtp = (req, res, next) => {
+    console.log(req.body);
+}
+
 
 module.exports.logOut = (req, res, next) => {
     res.clearCookie('tokken');
     res.clearCookie('user');
-    res.status(201).json({success:true,message:"Logged Out Successfuly"})
+    res.status(201).json({ success: true, message: "Logged Out Successfuly" })
 }
+
+

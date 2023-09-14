@@ -21,3 +21,17 @@ module.exports.authorizeRoles = (...roles) => {
         }
     }
 }
+
+module.exports.isVerified = (...verify) => {
+    return (req,res,next) => {
+        if (req.cookies.tokken){
+            const user = JSON.parse(req.cookies.user)
+            if (!verify.includes(user.verifyed)) {
+                res.json({ auth: false, message: "User need to verify their account to access this resource" })
+            }
+            else {
+                next()
+            }
+        }
+    }
+}
