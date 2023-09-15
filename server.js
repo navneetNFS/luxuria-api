@@ -1,6 +1,6 @@
 // Env Config File
 const dotenv = require('dotenv');
-dotenv.config({path: "./config/config.env"})
+dotenv.config({ path: "./config/config.env" })
 
 // Node - Express.js
 const express = require('express')
@@ -28,7 +28,7 @@ app.use(cors())
 // body-parser
 const bparser = require('body-parser');
 app.use(bparser.json());
-app.use(bparser.urlencoded({extended: true}));
+app.use(bparser.urlencoded({ extended: true }));
 
 // Cookie-parser
 const cookieParser = require('cookie-parser')
@@ -39,8 +39,8 @@ const api_route = require('./routes/api')
 app.use('/api', api_route)
 
 // Api Not Found
-app.use((req,res,next) => {
-    res.status(404).json({success: false, message:"API not Found"})
+app.use((req, res, next) => {
+    res.status(404).json({ success: false, message: "API not Found" })
 })
 
 const server = app.listen(port, () => console.log(`Example app listening on port http://localhost:${port}`))

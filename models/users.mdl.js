@@ -29,7 +29,6 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        required: [true, "Pease enter your role"],
         default: "user"
     },
     verifyed: {
