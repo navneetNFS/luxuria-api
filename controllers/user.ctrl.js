@@ -271,6 +271,8 @@ module.exports.resetPwdEmail = async (req, res, next) => {
     }
 }
 
+
+// GET OTP FOR RESET PASSWORD
 module.exports.getresetPwdOtp = (req, res, next) => {
     const recoverTKN = req.cookies.recoverTkn
     if (!recoverTKN) {
@@ -343,7 +345,7 @@ module.exports.getresetPwdOtp = (req, res, next) => {
     res.status(201).json({ success: true, otp: resetOtp })
 }
 
-
+// VERIFY OTP FOR RESET PASSWORD
 module.exports.resetPwdOtp = (req, res, next) => {
     if (req.cookies.resetOtp) {
         const enteredOtp = req.body.otp
@@ -357,19 +359,57 @@ module.exports.resetPwdOtp = (req, res, next) => {
     }
 }
 
+
+// SET NEW PASSWORD
 module.exports.setResetPassword = (req, res, next) => {
     if (req.cookies.recoverTkn) {
         const user = JSON.parse(req.cookies.user)
+        html = ` 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+</head>
+
+<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
+    <table style="width: 100%;height: 100vh;padding: 15px;">
+        <tr>
+            <td>
+                <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
+                    cellpadding="0">
+                    <tr>
+                        <td style="background: gold;text-align: center;padding: 10px 15px;"><a
+                                href="javascript: void(0)">Luxuria</a></td>
+                    </tr>
+                    <tr >
+                        <td style="padding-top: 25px;">
+                            <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Reset Password</h1>
+                            <p style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">Your password is successfully reseted please Re Login</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Contact us in case you have query <a href="javascript: void(0)">Link Here</a></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>`
         User.findById(user._id)
             .then(user => {
                 user.password = req.body.password
-                return user.save()
-            })
-            .then(() => {
                 res.clearCookie('tokken')
                 res.clearCookie('user')
                 res.clearCookie('recoverTkn')
                 res.status(201).json({ success: true, message: "User Updated Successfuly" })
+                sendMail(user.email, 'Reset Password', html)
+                return user.save()
             })
             .catch(err => error.ErrorHandler(501, err.message, res))
     }
@@ -379,10 +419,125 @@ module.exports.setResetPassword = (req, res, next) => {
 }
 
 
+// LogOut
 module.exports.logOut = (req, res, next) => {
     res.clearCookie('tokken');
     res.clearCookie('user');
     res.status(201).json({ success: true, message: "Logged Out Successfuly" })
 }
 
+// FORGOT PASSWORD
 
+module.exports.verifyForgotPassword = (req, res, next) => {
+    const { email } = req.body
+    const forgotOtp = Math.floor(100000 + Math.random() * 900000);
+    const otp_lst = String(forgotOtp).split('')
+    const [one, two, three, four, five, six] = otp_lst
+    let html = `
+    <!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forgot Paswword</title>
+</head>
+
+<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
+<table style="width: 100%;height: 100vh;padding: 15px;">
+    <tr>
+        <td>
+            <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
+                cellpadding="0">
+                <tr>
+                    <td style="background: gold;text-align: center;padding: 10px 15px;"><a
+                            href="javascript: void(0)">Luxuria</a></td>
+                </tr>
+                <tr>
+                    <td style="padding-top: 25px;">
+                        <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Please Verify OTP</h1>
+                        <p
+                            style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">
+                            DOnt worry you can change this password by verify this 6 digit otp for succesfully change password.</p>
+                        <p
+                            style="text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;">
+                            <span
+                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${one}</span>
+                            <span
+                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${two}</span>
+                            <span
+                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${three}</span>
+                            <span
+                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${four}</span>
+                            <span
+                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${five}</span>
+                            <span
+                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${six}</span>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Didn't sign up for
+                        Luxuriya? <a href="javascript: void(0)">Let us Know</a></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+
+</html>
+    `
+
+    sendMail(email, 'Forgot Password', html)
+
+    res.clearCookie('email');
+    res.cookie('email', email, { maxAge: process.env.RECOVER_EXPIRY * 24 * 60 * 60 * 1000 })
+    res.cookie('otp', forgotOtp, { maxAge: process.env.RECOVER_EXPIRY * 24 * 60 * 60 * 1000 })
+    res.status(201).json({ success: true, otp: forgotOtp })
+}
+
+
+module.exports.checkForgotOtp = (req, res, next) => {
+    if (req.cookies.otp) {
+        const otp = req.cookies.otp
+        const enteredOtp = req.body.otp
+
+        if (enteredOtp == otp) {
+            const recoverTokken = process.env.RECOVER_TOKKEN
+            res.clearCookie('otp');
+            res.clearCookie('recoverTokken');
+            res.cookie('recoverTokken', recoverTokken, { maxAge: process.env.RECOVER_EXPIRY * 24 * 60 * 60 * 1000 })
+            res.status(201).json({ success: true, message: "Otp Matched", tokken: recoverTokken })
+        }
+        else {
+            error.ErrorHandler(501, "Please Verify User Email for reset password")
+        }
+    }
+    else {
+        error.ErrorHandler(501, "Please Verify User Email for reset password")
+    }
+}
+
+module.exports.forgotPassword = (req,res,next) => {
+    const email = req.cookies.email;
+    console.log(email);
+    const {newPassword,confirmPassword} = req.body
+    let data = null
+    if(newPassword == confirmPassword){
+        // data = {password:newPassword}
+        User.findOne({email}).select("+password")
+        .then((user) => {
+            user.password = newPassword
+            res.clearCookie('email')
+            res.clearCookie('recoverTokken')
+            user.save()
+            res.status(201).json({success:true,message:"Password Updated Successfully",user})
+        })
+        .catch(err => error.ErrorHandler(501,err.message,res))
+    }
+    else{
+        error.ErrorHandler(502,"Password and Confirm Password are not same",res)
+    }
+}

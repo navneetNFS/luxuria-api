@@ -10,6 +10,10 @@ user_route.post('/login', user_ctrl.loginUser)
 // create-user
 user_route.post('/new-user', user_ctrl.createUser)
 
+user_route.post('/verify-email-forgot', user_ctrl.verifyForgotPassword)
+user_route.post('/check-forgot-otp', user_ctrl.checkForgotOtp)
+user_route.put('/forgot-password', user_ctrl.forgotPassword)
+
 // verify user
 user_route.get('/email-verify', authentication, isVerified(false), user_ctrl.getemailVerificationMail)
 user_route.post('/email-verify', authentication, isVerified(false), user_ctrl.postemailVerification)
