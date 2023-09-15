@@ -98,6 +98,38 @@ module.exports.getUsers = (req, res, next) => {
     }
 }
 
+// GET USER LIST
+module.exports.getSingleUser = (req, res, next) => {
+    if (req.cookies.tokken) {
+        const userid = req.params.userId
+        const userDet = JSON.parse(req.cookies.user);
+        const { role, _id } = userDet
+
+        if (role == 'user') {
+            if (userid == _id) {
+                User.findById(userid)
+                    .then(user => {
+                        res.status(201).json({ success: true, data: user })
+                    })
+                    .catch(err => error.ErrorHandler(400, err.message, res))
+            }
+            else{
+                error.ErrorHandler(501, "User not have access to this page", res)
+            }
+        }
+        else if (role == 'admin') {
+            User.findById(userid)
+                .then(user => {
+                    res.status(201).json({ success: true, data: user })
+                })
+                .catch(err => error.ErrorHandler(400, err.message, res))
+        }
+        else{
+            error.ErrorHandler(501, "Invalid Role", res)
+        }
+    }
+}
+
 
 // GET EMAIL VERIFICATION OTP
 module.exports.getemailVerificationMail = (req, res, next) => {
@@ -520,24 +552,24 @@ module.exports.checkForgotOtp = (req, res, next) => {
     }
 }
 
-module.exports.forgotPassword = (req,res,next) => {
+module.exports.forgotPassword = (req, res, next) => {
     const email = req.cookies.email;
     console.log(email);
-    const {newPassword,confirmPassword} = req.body
+    const { newPassword, confirmPassword } = req.body
     let data = null
-    if(newPassword == confirmPassword){
+    if (newPassword == confirmPassword) {
         // data = {password:newPassword}
-        User.findOne({email}).select("+password")
-        .then((user) => {
-            user.password = newPassword
-            res.clearCookie('email')
-            res.clearCookie('recoverTokken')
-            user.save()
-            res.status(201).json({success:true,message:"Password Updated Successfully",user})
-        })
-        .catch(err => error.ErrorHandler(501,err.message,res))
+        User.findOne({ email }).select("+password")
+            .then((user) => {
+                user.password = newPassword
+                res.clearCookie('email')
+                res.clearCookie('recoverTokken')
+                user.save()
+                res.status(201).json({ success: true, message: "Password Updated Successfully", user })
+            })
+            .catch(err => error.ErrorHandler(501, err.message, res))
     }
-    else{
-        error.ErrorHandler(502,"Password and Confirm Password are not same",res)
+    else {
+        error.ErrorHandler(502, "Password and Confirm Password are not same", res)
     }
 }

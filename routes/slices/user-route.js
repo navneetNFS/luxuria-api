@@ -37,5 +37,6 @@ user_route.get('/logout', authentication, isVerified(true), user_ctrl.logOut)
 
 // User List
 user_route.get('/', authentication, authorizeRoles("admin"), isVerified(true), user_ctrl.getUsers)
+user_route.get('/:userId', authentication, isVerified(true), user_ctrl.getSingleUser)
 
 module.exports = user_route
