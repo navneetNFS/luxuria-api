@@ -2,11 +2,13 @@ const User = require('../models/users.mdl')
 const error = require('../middleware/error')
 const crypto = require('crypto');
 const sendMail = require('../util/sendMail')
+const emailTemplate = require('../util/html')
 
 // LOGIN USER
 module.exports.loginUser = async (req, res, next) => {
     if (!req.cookies.tokken) {
         const { email, password } = req.body;
+        let html = emailTemplate.loginDetectionEmailer()
         if (email && password) {
             const user = await User.findOne({ email }).select("+password")
             if (user) {
@@ -17,6 +19,7 @@ module.exports.loginUser = async (req, res, next) => {
                     res.clearCookie('user');
                     res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
                     res.cookie('user', JSON.stringify(user), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
+                    sendMail(email, 'Login Detected', html)
                     res.status(201).json({ success: true, user, tokken });
                 }
                 else {
@@ -41,12 +44,16 @@ module.exports.loginUser = async (req, res, next) => {
 module.exports.createUser = (req, res, next) => {
     const data = req.body;
     const obj_user = new User(data);
+
+    let html = emailTemplate.creteUserEmailer()
+
     obj_user.save().then(user => {
         const tokken = obj_user.getJWTTokken();
         res.clearCookie('tokken');
         res.clearCookie('user');
         res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
         res.cookie('user', JSON.stringify(user), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
+        sendMail(user.email, 'Thank you for interested in Luxuria', html)
         res.status(201).json({ success: true, user, tokken });
     }).catch(err => {
         error.ErrorHandler(501, err.message, res)
@@ -57,6 +64,7 @@ module.exports.createUser = (req, res, next) => {
 module.exports.editUser = (req, res, next) => {
     const userId = req.params.userId;
     const data = req.body;
+
     const userData = User.findById(userId)
     userData.then((user) => {
         if (!user) {
@@ -78,8 +86,11 @@ module.exports.editUser = (req, res, next) => {
 // DELETE USER
 module.exports.deleteUser = (req, res, next) => {
     const userId = req.params.userId;
+    const userDetail = JSON.parse(req.cookies.user)
     const user = User.findByIdAndDelete(userId)
+    let html = emailTemplate.deleteAccountEmailer()
     user.then(() => {
+        sendMail(userDetail.email, 'Your Account Deleted Succussefully', html)
         res.clearCookie('tokken');
         res.clearCookie('user');
         res.status(201).json({ success: true, message: "User Deleted Successfuly" })
@@ -113,7 +124,7 @@ module.exports.getSingleUser = (req, res, next) => {
                     })
                     .catch(err => error.ErrorHandler(400, err.message, res))
             }
-            else{
+            else {
                 error.ErrorHandler(501, "User not have access to this page", res)
             }
         }
@@ -124,7 +135,7 @@ module.exports.getSingleUser = (req, res, next) => {
                 })
                 .catch(err => error.ErrorHandler(400, err.message, res))
         }
-        else{
+        else {
             error.ErrorHandler(501, "Invalid Role", res)
         }
     }
@@ -136,66 +147,9 @@ module.exports.getemailVerificationMail = (req, res, next) => {
     const user = JSON.parse(req.cookies.user)
     const otp = Math.floor(100000 + Math.random() * 900000);
     const otp_lst = String(otp).split('')
-    const [one, two, three, four, five, six] = otp_lst
 
-    let html = `
-    <!DOCTYPE html>
-<html lang="en">
+    let html = emailTemplate.verificationUserEmailer(otp_lst)
 
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Email Confirmation</title>
-</head>
-
-<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
-<table style="width: 100%;height: 100vh;padding: 15px;">
-    <tr>
-        <td>
-            <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
-                cellpadding="0">
-                <tr>
-                    <td style="background: gold;text-align: center;padding: 10px 15px;"><a
-                            href="javascript: void(0)">Luxuria</a></td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 25px;">
-                        <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Please confirm your email
-                            address</h1>
-                        <p
-                            style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">
-                            Thanks for interested in Luxuria. We are happy to have you. Please verify this 6 digit
-                            otp for succesfully sign up.</p>
-                        <p
-                            style="text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;">
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${one}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${two}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${three}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${four}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${five}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${six}</span>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Didn't sign up for
-                        Luxuriya? <a href="javascript: void(0)">Let us Know</a></td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-
-</html>
-    `
     res.clearCookie('otp');
     res.cookie('otp', otp);
     sendMail(user.email, 'Otp for Email Confirmation', html)
@@ -222,43 +176,7 @@ module.exports.postemailVerification = (req, res) => {
                 User.findById(_id)
                     .then(user => {
 
-                        html = `
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>Welcome to Luxuria</title>
-                        </head>
-                        
-                        <body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
-                            <table style="width: 100%;height: 100vh;padding: 15px;">
-                                <tr>
-                                    <td>
-                                        <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
-                                            cellpadding="0">
-                                            <tr>
-                                                <td style="background: gold;text-align: center;padding: 10px 15px;"><a
-                                                        href="javascript: void(0)">Luxuria</a></td>
-                                            </tr>
-                                            <tr >
-                                                <td style="padding-top: 25px;">
-                                                    <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Welcome to Luxuria</h1>
-                                                    <p style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">Thanks for signing up to Luxuria. We are happy to have you.</p>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Contact us in case you have query <a href="javascript: void(0)">Link Here</a></td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        
-                        </body>
-                        
-                        </html>`
+                        html = emailTemplate.welecomeUserVerificationEmailer()
 
                         const tokken = user.getJWTTokken()
                         res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
@@ -315,59 +233,7 @@ module.exports.getresetPwdOtp = (req, res, next) => {
     const otp_lst = String(resetOtp).split('')
     const [one, two, three, four, five, six] = otp_lst
 
-    html = `
-    <!DOCTYPE html>
-<html lang="en">
-
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reset Password</title>
-</head>
-
-<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
-<table style="width: 100%;height: 100vh;padding: 15px;">
-    <tr>
-        <td>
-            <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
-                cellpadding="0">
-                <tr>
-                    <td style="background: gold;text-align: center;padding: 10px 15px;"><a
-                            href="javascript: void(0)">Luxuria</a></td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 25px;">
-                        <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Reset Password</h1>
-                        <p
-                            style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">We have shared you an 6 digit otp for reset you password. this otp is valid for 30 mins</p>
-                        <p
-                            style="text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;">
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${one}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${two}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${three}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${four}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${five}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${six}</span>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Contact us in case you have query <a href="javascript: void(0)">Link Here</a></td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-
-</html>`
+    html = emailTemplate.resetPasswordOtpEmailer(otp_lst)
 
     res.clearCookie('resetOtp');
     res.cookie('resetOtp', resetOtp);
@@ -396,43 +262,7 @@ module.exports.resetPwdOtp = (req, res, next) => {
 module.exports.setResetPassword = (req, res, next) => {
     if (req.cookies.recoverTkn) {
         const user = JSON.parse(req.cookies.user)
-        html = ` 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password</title>
-</head>
-
-<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
-    <table style="width: 100%;height: 100vh;padding: 15px;">
-        <tr>
-            <td>
-                <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
-                    cellpadding="0">
-                    <tr>
-                        <td style="background: gold;text-align: center;padding: 10px 15px;"><a
-                                href="javascript: void(0)">Luxuria</a></td>
-                    </tr>
-                    <tr >
-                        <td style="padding-top: 25px;">
-                            <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Reset Password</h1>
-                            <p style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">Your password is successfully reseted please Re Login</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Contact us in case you have query <a href="javascript: void(0)">Link Here</a></td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-</body>
-
-</html>`
+        html = emailTemplate.setPasswordEmailer()
         User.findById(user._id)
             .then(user => {
                 user.password = req.body.password
@@ -440,7 +270,7 @@ module.exports.setResetPassword = (req, res, next) => {
                 res.clearCookie('user')
                 res.clearCookie('recoverTkn')
                 res.status(201).json({ success: true, message: "User Updated Successfuly" })
-                sendMail(user.email, 'Reset Password', html)
+                sendMail(user.email, 'Reset Password Succussefully', html)
                 return user.save()
             })
             .catch(err => error.ErrorHandler(501, err.message, res))
@@ -464,63 +294,7 @@ module.exports.verifyForgotPassword = (req, res, next) => {
     const { email } = req.body
     const forgotOtp = Math.floor(100000 + Math.random() * 900000);
     const otp_lst = String(forgotOtp).split('')
-    const [one, two, three, four, five, six] = otp_lst
-    let html = `
-    <!DOCTYPE html>
-<html lang="en">
-
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Forgot Paswword</title>
-</head>
-
-<body style="margin: 0;padding: 0;background: #efefef;font-family: Arial, Helvetica, sans-serif;">
-<table style="width: 100%;height: 100vh;padding: 15px;">
-    <tr>
-        <td>
-            <table style="width: 100%;max-width: 400px;margin: 0 auto;background: #fff;" cellspacing="0"
-                cellpadding="0">
-                <tr>
-                    <td style="background: gold;text-align: center;padding: 10px 15px;"><a
-                            href="javascript: void(0)">Luxuria</a></td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 25px;">
-                        <h1 style="font-size: 18px;text-align: center;padding: 0 15px;">Please Verify OTP</h1>
-                        <p
-                            style="font-size: 12px;text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;color: #a9a9a9;">
-                            DOnt worry you can change this password by verify this 6 digit otp for succesfully change password.</p>
-                        <p
-                            style="text-align: center;display: block;max-width: 60%;margin: 0 auto;padding-bottom: 20px;">
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${one}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${two}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${three}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${four}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${five}</span>
-                            <span
-                                style="display: inline-block;border: 1px solid #ccc;background-color: #efefef;width: 35px;height: 35px;padding: 9px 0px;box-sizing: border-box;border-radius: 2px;">${six}</span>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="text-align: center;font-size: 14px;padding-bottom: 30px;">Didn't sign up for
-                        Luxuriya? <a href="javascript: void(0)">Let us Know</a></td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-
-</html>
-    `
+    let html = emailTemplate.verifyForgotPasswordOtpEMailer(otp_lst)
 
     sendMail(email, 'Forgot Password', html)
 

@@ -1,7 +1,5 @@
 const Order = require('../models/orders.mdl')
-const Product = require('../models/products.mdl')
 const error = require('../middleware/error')
-const { request } = require('express')
 
 module.exports.getOrders = (req, res, next) => {
     Order.find()
