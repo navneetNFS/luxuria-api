@@ -57,3 +57,39 @@ module.exports.deleteProduct = (req, res, next) => {
         })
         .catch(err => error.ErrorHandler(401, err.message, res))
 }
+
+module.exports.addReview = (req, res, next) => {
+    const prodId = req.params.productId
+    const data = req.body
+    const user = JSON.parse(req.cookies.user)
+    const reviews = {}
+    reviews.userId = user._id
+    reviews.username = user.name
+    reviews.rating = data.rating
+    reviews.comment = data.comment
+    Products.findById(prodId)
+    .then(product => {
+        const reviewList = product.reviews;
+
+        reviewer = reviewList.find((review) => review.userId.includes(user._id))
+        result = reviewList.findIndex((review) => review.userId.includes(user._id))
+        if(result >= 0){
+            product.reviews[result] = reviews
+        }
+        else{
+            product.reviews.push(reviews)
+        }
+
+        // Average Rating
+        let total_rating = 0
+        reviewList.forEach((item) => {
+            total_rating  += item.rating
+        })
+        
+        product.rating = total_rating / reviewList.length
+
+        product.save()
+        res.status(201).json({success:true,message:"Review added successfully",data:product})
+    })
+    .catch(err => error.ErrorHandler(501,err.message,res))
+}

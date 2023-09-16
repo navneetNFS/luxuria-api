@@ -38,21 +38,26 @@ const productSchema = new Schema({
     sku: {
         type: String,
         required: [true, "Please Enter Product SKU"],
+        unique: [true, "Product SKU Already Available"],
         maxLength: [15, "Price cannot be more than 15 figures"]
     },
     onsale: {
         type: Boolean,
         default: false
     },
-    disabled : {
+    available : {
         type: Boolean,
-        default: false
+        default: true
     },
     numberOfReviews: {
         type: Number,
         default: 0,
     },
     reviews: [{
+        userId: {
+            type: String,
+            required: true
+        },
         username: {
             type: String,
             required: true

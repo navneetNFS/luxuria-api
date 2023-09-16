@@ -9,4 +9,6 @@ product_route.post('/create-product', authentication , authorizeRoles("admin") ,
 product_route.put('/edit-product/:prodId', authentication , authorizeRoles("admin") , isVerified(true) , product_ctrl.editProduct)
 product_route.delete('/delete-product/:prodId', authentication , authorizeRoles("admin") , isVerified(true) , product_ctrl.deleteProduct)
 
+product_route.post('/add-review/:productId', authentication , product_ctrl.addReview)
+
 module.exports = product_route
