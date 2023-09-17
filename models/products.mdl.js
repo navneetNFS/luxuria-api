@@ -21,6 +21,10 @@ const productSchema = new Schema({
         type: Number,
         default: 0
     },
+    thumb:{
+        type: String,
+        required: [true, "Please Upload Product Thumbline"]
+    },
     images: [{
         type: String,
         required: [true, "Please Upload Product Image"]
