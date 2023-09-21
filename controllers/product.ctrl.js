@@ -1,4 +1,5 @@
 const Products = require('../models/products.mdl')
+const Users = require('../models/users.mdl')
 const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
 
@@ -92,4 +93,20 @@ module.exports.addReview = (req, res, next) => {
         res.status(201).json({success:true,message:"Review added successfully",data:product})
     })
     .catch(err => error.ErrorHandler(501,err.message,res))
+}
+
+module.exports.getProductReview = (req,res,next) => {
+const prodId = req.params.productId
+Products.findById(prodId)
+.populate('reviews.userId')
+.then(product => {
+   return product 
+})
+.then(({reviews}) => {
+    res.status(201).json({
+        success: true,
+        reviews
+    })
+})
+.catch(err => error.ErrorHandler(501,err.message,res))
 }

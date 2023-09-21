@@ -11,4 +11,6 @@ product_route.delete('/delete-product/:prodId', authentication , authorizeRoles(
 
 product_route.post('/add-review/:productId', authentication , product_ctrl.addReview)
 
+product_route.get('/get-reviews/:productId', product_ctrl.getProductReview)
+
 module.exports = product_route

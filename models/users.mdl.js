@@ -16,6 +16,11 @@ const userSchema = new Schema({
         unique: [true, 'Email Already Used'],
         validate: [validator.isEmail, "Please Enter a Valid Email Address"]
     },
+    mobile:{
+        type: String,
+        required: [true,"Enter Your Mobile Number"],
+        unique: [true, 'Email Already Used'],
+    },
     password: {
         type: String,
         required: [true, 'Enter Your Password'],

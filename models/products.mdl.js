@@ -60,7 +60,8 @@ const productSchema = new Schema({
     reviews: [{
         userId: {
             type: String,
-            required: true
+            required: true,
+            ref: 'User'
         },
         username: {
             type: String,
