@@ -30,7 +30,7 @@ const userSchema = new Schema({
     },
     avatar: {
         type: String,
-        required: [true, "Please upload your avatar"],
+        default: '',
     },
     role: {
         type: String,
