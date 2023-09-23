@@ -2,7 +2,7 @@ const User = require('../models/users.mdl')
 const error = require('../middleware/error')
 const crypto = require('crypto');
 const sendMail = require('../util/sendMail')
-const emailTemplate = require('../util/html')
+const emailTemplate = require('../util/html');
 
 // LOGIN USER
 module.exports.loginUser = async (req, res, next) => {
@@ -43,7 +43,9 @@ module.exports.loginUser = async (req, res, next) => {
 // CREATE USER
 module.exports.createUser = (req, res, next) => {
     const data = req.body;
-    data.avatar = req.file.filename
+    if(req.file){
+        data.avatar = req.file.filename
+    }
     const obj_user = new User(data);
 
     let html = emailTemplate.creteUserEmailer()
