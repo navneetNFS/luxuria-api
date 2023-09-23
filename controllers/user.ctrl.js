@@ -43,6 +43,7 @@ module.exports.loginUser = async (req, res, next) => {
 // CREATE USER
 module.exports.createUser = (req, res, next) => {
     const data = req.body;
+    data.avatar = req.file.filename
     const obj_user = new User(data);
 
     let html = emailTemplate.creteUserEmailer()

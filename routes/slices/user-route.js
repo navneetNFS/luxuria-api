@@ -3,12 +3,27 @@ const user_route = express.Router();
 const user_ctrl = require('../../controllers/user.ctrl')
 const { authentication, authorizeRoles, isVerified } = require('../../middleware/isAuth')
 
+// FILE UPLOAD
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/images');
+    },
+    filename: (req, file, cb) => {
+        const today = new Date();
+        const current_time = `${today.getDate()}.${today.getMonth()}.${today.getFullYear()}.${today.getHours()}.${today.getMinutes()}.${today.getSeconds()}`;
+        cb(null, current_time + '-' + file.originalname); // Set the file name
+    },
+});
+
+const upload = multer({ storage });
+
 
 // Login User
 user_route.post('/login', user_ctrl.loginUser)
 
 // create-user
-user_route.post('/new-user', user_ctrl.createUser)
+user_route.post('/new-user', upload.single('avatar') , user_ctrl.createUser)
 
 user_route.post('/verify-email-forgot', user_ctrl.verifyForgotPassword)
 user_route.post('/check-forgot-otp', user_ctrl.checkForgotOtp)

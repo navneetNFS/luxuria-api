@@ -34,6 +34,13 @@ app.use(bparser.urlencoded({ extended: true }));
 const cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
+app.set("view engine","ejs")
+app.set("views","templates")
+
+// UI Route
+// const ui_route = require('./routes/ui')
+// app.use('/ui', ui_route)
+
 // Api Route
 const api_route = require('./routes/api')
 app.use('/api', api_route)
