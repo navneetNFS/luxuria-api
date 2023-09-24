@@ -43,7 +43,7 @@ module.exports.loginUser = async (req, res, next) => {
 // CREATE USER
 module.exports.createUser = (req, res, next) => {
     const data = req.body;
-    if(req.file){
+    if (req.file) {
         data.avatar = req.file.filename
     }
     const obj_user = new User(data);
@@ -54,8 +54,9 @@ module.exports.createUser = (req, res, next) => {
         const tokken = obj_user.getJWTTokken();
         res.clearCookie('tokken');
         res.clearCookie('user');
-        res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
-        res.cookie('user', JSON.stringify(user), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
+        const cookieConfig = { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 }
+        res.cookie('tokken', String(tokken), cookieConfig)
+        res.cookie('user', JSON.stringify(user), cookieConfig)
         sendMail(user.email, 'Thank you for interested in Luxuria', html)
         res.status(201).json({ success: true, user, tokken });
     }).catch(err => {
