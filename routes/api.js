@@ -11,5 +11,11 @@ api_route.use('/user', user)
 api_route.use('/product', product)
 api_route.use('/orders', order)
 api_route.use('/category', category)
+api_route.get('/getCookie', (req,res) => {
+    res.status(201).json({
+        succcess: true,
+        cookies: req.cookies
+    })
+})
 
 module.exports = api_route

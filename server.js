@@ -23,7 +23,10 @@ process.on("uncaughtException", (err) => {
 
 // CORS
 const cors = require('cors')
-app.use(cors())
+app.use(cors({
+    origin: '*',
+    credentials: true
+}));
 
 // body-parser
 const bparser = require('body-parser');
