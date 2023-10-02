@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 product_route.get('/', product_ctrl.getProducts)
+product_route.post('/product-thumb', upload.single('thumb') , product_ctrl.thumbImageUpload)
+product_route.post('/product-images', upload.single('images') , product_ctrl.imagesUpload)
 product_route.get('/:prodId', product_ctrl.getSingleProduct)
 product_route.post('/create-product' , authentication , authorizeRoles("admin") , isVerified(true) , product_ctrl.createProduct)
 product_route.put('/edit-product/:prodId', authentication , authorizeRoles("admin") , isVerified(true) , product_ctrl.editProduct)

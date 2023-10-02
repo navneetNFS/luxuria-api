@@ -3,6 +3,16 @@ const Users = require('../models/users.mdl')
 const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
 
+module.exports.thumbImageUpload = (req,res,next) => {
+    console.log(req.file);
+    res.status(201).send({ success: true, data: "Hello Product"});
+}
+
+module.exports.imagesUpload = (req,res,next) => {
+    console.log(req.file);
+    res.status(201).send({ success: true, data: "Hello Product"});
+}
+
 module.exports.getProducts = (req, res, next) => {
     Products.find(ApiFeature.ProductApiFilter(req.query))
         .then(filterData => { return filterData })
