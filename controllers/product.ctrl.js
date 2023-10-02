@@ -4,13 +4,13 @@ const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
 
 module.exports.thumbImageUpload = (req,res,next) => {
-    console.log(req.file);
-    res.status(201).send({ success: true, data: "Hello Product"});
+    console.log(req.file.filename);
+    res.status(201).send({ success: true, data: req.file.filename});
 }
 
 module.exports.imagesUpload = (req,res,next) => {
-    console.log(req.file);
-    res.status(201).send({ success: true, data: "Hello Product"});
+    console.log(req.file.filename);
+    res.status(201).send({ success: true, data: req.file.filename});
 }
 
 module.exports.getProducts = (req, res, next) => {
