@@ -4,13 +4,21 @@ const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
 
 module.exports.thumbImageUpload = (req,res,next) => {
-    console.log(req.file.filename);
-    res.status(201).send({ success: true, data: req.file.filename});
+    if(req.file){
+        res.status(201).send({ success: true, thumb: req.file.filename});
+    }
+    else{
+        error.ErrorHandler(501,"File Not Uploaded", res)
+    }
 }
 
 module.exports.imagesUpload = (req,res,next) => {
-    console.log(req.file.filename);
-    res.status(201).send({ success: true, data: req.file.filename});
+    if(req.file){
+        res.status(201).send({ success: true, images: req.file.filename});
+    }
+    else{
+        error.ErrorHandler(501,"File Not Uploaded", res)
+    }
 }
 
 module.exports.getProducts = (req, res, next) => {
