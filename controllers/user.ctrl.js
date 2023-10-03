@@ -234,7 +234,6 @@ module.exports.getresetPwdOtp = (req, res, next) => {
     const user = JSON.parse(req.cookies.user)
     const resetOtp = Math.floor(100000 + Math.random() * 900000);
     const otp_lst = String(resetOtp).split('')
-    const [one, two, three, four, five, six] = otp_lst
 
     html = emailTemplate.resetPasswordOtpEmailer(otp_lst)
 
