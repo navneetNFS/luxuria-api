@@ -1,3 +1,5 @@
+const path = require('path');
+
 // Env Config File
 const dotenv = require('dotenv');
 dotenv.config({ path: "./config/config.env" })
@@ -43,6 +45,9 @@ app.set("views","templates")
 // UI Route
 // const ui_route = require('./routes/ui')
 // app.use('/ui', ui_route)
+
+app.use(express.static(path.join(__dirname,'uploads')))
+app.use('/uploads/images', express.static(path.join(__dirname, 'uploads/images')))
 
 // Api Route
 const api_route = require('./routes/api')

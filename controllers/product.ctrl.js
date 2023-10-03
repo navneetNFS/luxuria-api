@@ -1,24 +1,39 @@
+const { unlink } = require('node:fs');
 const Products = require('../models/products.mdl')
 const Users = require('../models/users.mdl')
 const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
 
-module.exports.thumbImageUpload = (req,res,next) => {
-    if(req.file){
-        res.status(201).send({ success: true, thumb: req.file.filename});
+module.exports.thumbImageUpload = (req, res, next) => {
+    if (req.file) {
+        res.status(201).send({ success: true, thumb: req.file.filename });
     }
-    else{
-        error.ErrorHandler(501,"File Not Uploaded", res)
+    else {
+        error.ErrorHandler(501, "File Not Uploaded", res)
     }
 }
 
-module.exports.imagesUpload = (req,res,next) => {
-    if(req.file){
-        res.status(201).send({ success: true, images: req.file.filename});
+module.exports.imagesUpload = (req, res, next) => {
+    if (req.file) {
+        res.status(201).send({ success: true, images: req.file.filename });
     }
-    else{
-        error.ErrorHandler(501,"File Not Uploaded", res)
+    else {
+        error.ErrorHandler(501, "File Not Uploaded", res)
     }
+}
+
+module.exports.deleteProductImage = (req, res, next) => {
+    const image_name = req.params.imageName
+    console.log(image_name);
+    // unlink(path.join(__dirname,`/uploads/images/${image_name}`), (err) => {
+    //   if (err){
+    //     error.ErrorHandler(501,err,res)
+    //   }
+    //   else{
+    //       console.log(`successfully deleted ${image_name}`);
+    //       res.status(201).json({success: true,message:"Image Deleted Successfully"})
+    //   }
+    // });
 }
 
 module.exports.getProducts = (req, res, next) => {
@@ -27,11 +42,11 @@ module.exports.getProducts = (req, res, next) => {
         .then((data) => {
             if (req.query.page) {
                 const chunck = ApiFeature.paginateData(data, req.query.page, 100)
-                if(req.query.page <= chunck.totalPages){
-                    res.status(201).send({ success: true, data: chunck.data, page: req.query.page , products: chunck.data.length, totalPages: chunck.totalPages });
+                if (req.query.page <= chunck.totalPages) {
+                    res.status(201).send({ success: true, data: chunck.data, page: req.query.page, products: chunck.data.length, totalPages: chunck.totalPages });
                 }
-                else{
-                    res.status(404).send({ success: false, message : "Page Not Found"});
+                else {
+                    res.status(404).send({ success: false, message: "Page Not Found" });
                 }
             }
         })
@@ -87,44 +102,44 @@ module.exports.addReview = (req, res, next) => {
     reviews.rating = data.rating
     reviews.comment = data.comment
     Products.findById(prodId)
-    .then(product => {
-        const reviewList = product.reviews;
+        .then(product => {
+            const reviewList = product.reviews;
 
-        reviewer = reviewList.find((review) => review.userId.includes(user._id))
-        result = reviewList.findIndex((review) => review.userId.includes(user._id))
-        if(result >= 0){
-            product.reviews[result] = reviews
-        }
-        else{
-            product.reviews.push(reviews)
-        }
+            reviewer = reviewList.find((review) => review.userId.includes(user._id))
+            result = reviewList.findIndex((review) => review.userId.includes(user._id))
+            if (result >= 0) {
+                product.reviews[result] = reviews
+            }
+            else {
+                product.reviews.push(reviews)
+            }
 
-        // Average Rating
-        let total_rating = 0
-        reviewList.forEach((item) => {
-            total_rating  += item.rating
+            // Average Rating
+            let total_rating = 0
+            reviewList.forEach((item) => {
+                total_rating += item.rating
+            })
+
+            product.rating = total_rating / reviewList.length
+
+            product.save()
+            res.status(201).json({ success: true, message: "Review added successfully", data: product })
         })
-        
-        product.rating = total_rating / reviewList.length
-
-        product.save()
-        res.status(201).json({success:true,message:"Review added successfully",data:product})
-    })
-    .catch(err => error.ErrorHandler(501,err.message,res))
+        .catch(err => error.ErrorHandler(501, err.message, res))
 }
 
-module.exports.getProductReview = (req,res,next) => {
-const prodId = req.params.productId
-Products.findById(prodId)
-.populate('reviews.userId')
-.then(product => {
-   return product 
-})
-.then(({reviews}) => {
-    res.status(201).json({
-        success: true,
-        reviews
-    })
-})
-.catch(err => error.ErrorHandler(501,err.message,res))
+module.exports.getProductReview = (req, res, next) => {
+    const prodId = req.params.productId
+    Products.findById(prodId)
+        .populate('reviews.userId')
+        .then(product => {
+            return product
+        })
+        .then(({ reviews }) => {
+            res.status(201).json({
+                success: true,
+                reviews
+            })
+        })
+        .catch(err => error.ErrorHandler(501, err.message, res))
 }
