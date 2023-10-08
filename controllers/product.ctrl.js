@@ -3,6 +3,7 @@ const Products = require('../models/products.mdl')
 const Users = require('../models/users.mdl')
 const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
+const path = require('path')
 
 module.exports.thumbImageUpload = (req, res, next) => {
     if (req.file) {
@@ -25,15 +26,16 @@ module.exports.imagesUpload = (req, res, next) => {
 module.exports.deleteProductImage = (req, res, next) => {
     const image_name = req.params.imageName
     console.log(image_name);
-    // unlink(path.join(__dirname,`/uploads/images/${image_name}`), (err) => {
-    //   if (err){
-    //     error.ErrorHandler(501,err,res)
-    //   }
-    //   else{
-    //       console.log(`successfully deleted ${image_name}`);
-    //       res.status(201).json({success: true,message:"Image Deleted Successfully"})
-    //   }
-    // });
+    // res.status(201).json({success:true,message:"Image Delted Successfully"});
+    unlink(path.join(__dirname,'../',`/uploads/images/${image_name}`), (err) => {
+      if (err){
+        error.ErrorHandler(501,err,res)
+      }
+      else{
+          console.log(`successfully deleted ${image_name}`);
+          res.status(201).json({success: true,message:"Image Deleted Successfully"})
+      }
+    });
 }
 
 module.exports.getProducts = (req, res, next) => {
