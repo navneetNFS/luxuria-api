@@ -25,7 +25,6 @@ module.exports.imagesUpload = (req, res, next) => {
 
 module.exports.deleteProductImage = (req, res, next) => {
     const image_name = req.params.imageName
-    console.log(image_name);
     // res.status(201).json({success:true,message:"Image Delted Successfully"});
     unlink(path.join(__dirname,'../',`/uploads/images/${image_name}`), (err) => {
       if (err){
