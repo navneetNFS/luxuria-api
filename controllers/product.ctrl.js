@@ -5,6 +5,32 @@ const error = require('../middleware/error')
 const ApiFeature = require('../middleware/apiFeature')
 const path = require('path')
 
+module.exports.getProducts = (req, res, next) => {
+    Products.find(ApiFeature.ProductApiFilter(req.query))
+        .then(filterData => { return filterData })
+        .then((data) => {
+            if (req.query.page) {
+                const chunck = ApiFeature.paginateData(data, req.query.page, 10)
+                if (req.query.page <= chunck.totalPages) {
+                    res.status(201).send({ success: true, data: chunck.data, page: req.query.page, products: chunck.data.length, totalPages: chunck.totalPages });
+                }
+                else {
+                    res.status(404).send({ success: false, message: "Page Not Found" });
+                }
+            }
+        })
+        .catch(err => error.ErrorHandler(401, err.message, res))
+}
+
+module.exports.getSingleProduct = (req, res, next) => {
+    const productId = req.params.prodId
+    Products.findById(productId)
+        .then((product) => {
+            res.json({ success: true, product })
+        })
+        .catch(err => error.ErrorHandler(401, err.message, res))
+}
+
 module.exports.thumbImageUpload = (req, res, next) => {
     if (req.file) {
         res.status(201).send({ success: true, thumb: req.file.filename });
@@ -37,31 +63,9 @@ module.exports.deleteProductImage = (req, res, next) => {
     });
 }
 
-module.exports.getProducts = (req, res, next) => {
-    Products.find(ApiFeature.ProductApiFilter(req.query))
-        .then(filterData => { return filterData })
-        .then((data) => {
-            if (req.query.page) {
-                const chunck = ApiFeature.paginateData(data, req.query.page, 100)
-                if (req.query.page <= chunck.totalPages) {
-                    res.status(201).send({ success: true, data: chunck.data, page: req.query.page, products: chunck.data.length, totalPages: chunck.totalPages });
-                }
-                else {
-                    res.status(404).send({ success: false, message: "Page Not Found" });
-                }
-            }
-        })
-        .catch(err => error.ErrorHandler(401, err.message, res))
-}
 
-module.exports.getSingleProduct = (req, res, next) => {
-    const productId = req.params.prodId
-    Products.findById(productId)
-        .then((product) => {
-            res.json({ success: true, product })
-        })
-        .catch(err => error.ErrorHandler(401, err.message, res))
-}
+
+
 
 module.exports.createProduct = (req, res, next) => {
     const data = req.body
