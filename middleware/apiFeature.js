@@ -1,7 +1,7 @@
 module.exports.ProductApiFilter = (filter) => {
     const filterFunc = () => {
         if(filter) {
-            if(filter['search'] || filter['category'] && filter['price'] && filter['stock']){
+            if(filter['search'] || filter['category'] || filter['price'] || filter['stock']){
                 return {
                     name: {
                         $regex : filter.search,
@@ -15,38 +15,6 @@ module.exports.ProductApiFilter = (filter) => {
                         $gte: filter.price.gt || 1,
                         $lte : filter.price.lt || 99999999
                     },
-                    stock:{
-                        $gte: filter.stock.gt || 1,
-                        $lte : filter.stock.lt || 99999999
-                    }
-                }
-            }
-            else if(filter.category){
-                return {
-                    name: {
-                        $regex : filter.search,
-                        $options: 'i'
-                    }
-                }
-            }
-            else if(filter.category){
-                return {
-                    category : {
-                        $regex : filter.category,
-                        $options: 'i'
-                    }
-                }
-            }
-            else if(filter.price){
-                return {
-                    price:{
-                        $gte: filter.price.gt || 1,
-                        $lte : filter.price.lt || 99999999
-                    }
-                }
-            }
-            else if(filter.stock){
-                return {
                     stock:{
                         $gte: filter.stock.gt || 1,
                         $lte : filter.stock.lt || 99999999
