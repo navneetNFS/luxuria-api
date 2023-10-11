@@ -18,6 +18,9 @@ module.exports.getProducts = (req, res, next) => {
                     res.status(404).send({ success: false, message: "Page Not Found" });
                 }
             }
+            else{
+                res.status(201).send({ success: true, data });
+            }
         })
         .catch(err => error.ErrorHandler(401, err.message, res))
 }
