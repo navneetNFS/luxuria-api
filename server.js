@@ -6,6 +6,7 @@ dotenv.config({ path: "./config/config.env" })
 
 // Node - Express.js
 const express = require('express')
+const { rateLimit } = require('express-rate-limit')
 const app = express()
 
 // DATABASE
@@ -49,9 +50,23 @@ app.set("views","templates")
 app.use(express.static(path.join(__dirname,'uploads')))
 app.use('/uploads/images', express.static(path.join(__dirname, 'uploads/images')))
 
+// limiter
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 30, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: "Too many API requests from this IP , Please try again after 15 minutes"
+	// store: ... , // Use an external store for more precise rate limiting
+})
+
 // Api Route
 const api_route = require('./routes/api')
-app.use('/api', api_route)
+app.use('/api' , limiter , api_route)
+
+
+
+
 
 // Api Not Found
 app.use((req, res, next) => {
