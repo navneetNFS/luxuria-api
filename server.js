@@ -53,7 +53,7 @@ app.use('/uploads/images', express.static(path.join(__dirname, 'uploads/images')
 // limiter
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
-	limit: 30, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	limit: 3000, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
 	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     message: "Too many API requests from this IP , Please try again after 15 minutes"

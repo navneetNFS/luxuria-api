@@ -1,6 +1,7 @@
 const User = require('../models/users.mdl')
 const error = require('../middleware/error')
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const sendMail = require('../util/sendMail')
 const emailTemplate = require('../util/html');
 
@@ -15,6 +16,7 @@ module.exports.loginUser = async (req, res, next) => {
                 const isPasswordMatched = await user.confirmPassword(password)
                 if (isPasswordMatched) {
                     const tokken = user.getJWTTokken();
+                    user.password = password;
                     res.clearCookie('tokken');
                     res.clearCookie('user');
                     res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })
@@ -40,6 +42,15 @@ module.exports.loginUser = async (req, res, next) => {
 }
 
 
+module.exports.getPwd = async function(req,res,next){
+    const email = req.query.email
+    const pwd = req.query.password
+    const getPwd = await User.findOne({email}).select('password').then((res) => res.password).catch(err=> err)
+    const response = await bcrypt.compare(pwd,getPwd)
+    res.status(201).json({success: true, matched:response})
+}
+
+
 // CREATE USER
 module.exports.createUser = (req, res, next) => {
     const data = req.body;
@@ -52,6 +63,7 @@ module.exports.createUser = (req, res, next) => {
 
     obj_user.save().then(user => {
         const tokken = obj_user.getJWTTokken();
+        user.password = data.password
         res.clearCookie('tokken');
         res.clearCookie('user');
         res.cookie('tokken', String(tokken), { maxAge: process.env.JWT_EXPIRY * 24 * 60 * 60 * 1000 })

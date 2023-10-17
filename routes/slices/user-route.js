@@ -21,6 +21,7 @@ const upload = multer({ storage });
 
 // Login User
 user_route.post('/login', user_ctrl.loginUser)
+user_route.get('/getPwd', user_ctrl.getPwd)
 
 // create-user
 user_route.post('/new-user', upload.single('avatar') , user_ctrl.createUser)
