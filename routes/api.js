@@ -7,9 +7,6 @@ const user = require('./slices/user-route')
 const order = require('./slices/order-route')
 const category = require('./slices/category-route')
 
-api_route.use('/', (req,res) => {
-    res.send("API Page")
-})
 api_route.use('/user', user)
 api_route.use('/product', product)
 api_route.use('/orders', order)
