@@ -5,8 +5,8 @@ const Schema = mongoose.Schema;
 const categorySchema = new Schema({
     name: {
         type: String,
-        required: [true, "Please Enter Product Name"],
-        unique: [true, "Product Already Available"]
+        required: [true, "Please Enter Category Name"],
+        unique: [true, "Category Already Available"]
     },
     createdAt: {
         type: Date,

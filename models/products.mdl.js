@@ -33,6 +33,10 @@ const productSchema = new Schema({
         type: String,
         required: [true, "Please Enter Product Category"]
     },
+    SubCategory: {
+        type: String,
+        required: [true, "Please Enter Product Sub Category"]
+    },
     stock: {
         type: Number,
         default: 1,
