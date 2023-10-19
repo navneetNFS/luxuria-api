@@ -9,8 +9,8 @@ const subCategorySchema = new Schema({
     },
     subcategory: {
         type: String,
-        required: [true, "Please Enter Sub Category"],
-        unique: [true, "Sub Category Already Available"]
+        required: [true, "Please Enter Sub Category"]
+        //unique: [true, "Sub Category Already Available"]
     },
     createdAt: {
         type: Date,

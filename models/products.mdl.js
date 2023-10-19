@@ -33,7 +33,7 @@ const productSchema = new Schema({
         type: String,
         required: [true, "Please Enter Product Category"]
     },
-    SubCategory: {
+    subcategory: {
         type: String,
         required: [true, "Please Enter Product Sub Category"]
     },
