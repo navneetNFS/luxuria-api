@@ -18,7 +18,6 @@ module.exports.getUserOrders = (req, res, next) => {
     if (req.cookies.user) {
         const userJson = JSON.parse(req.cookies.user)
         const user_id = userJson._id
-        console.log(user_id);
         Order.find({ user: user_id })
             .then((order) => {
                 totalprice = 0

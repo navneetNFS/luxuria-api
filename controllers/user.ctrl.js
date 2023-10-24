@@ -143,7 +143,7 @@ module.exports.getSingleUser = (req, res, next) => {
                 error.ErrorHandler(501, "User not have access to this page", res)
             }
         }
-        else if (role == 'admin') {
+        else if (role == 'admin' || role == 'super-admin') {
             User.findById(userid)
                 .then(user => {
                     res.status(201).json({ success: true, data: user })
@@ -342,7 +342,6 @@ module.exports.checkForgotOtp = (req, res, next) => {
 
 module.exports.forgotPassword = (req, res, next) => {
     const email = req.cookies.email;
-    console.log(email);
     const { newPassword, confirmPassword } = req.body
     let data = null
     if (newPassword == confirmPassword) {
