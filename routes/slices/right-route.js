@@ -1,7 +1,8 @@
 const express = require('express');
-const role_route = express.Router()
-const role_ctrl = require('../../controllers/right.ctrl')
+const right_route = express.Router()
+const right_ctrl = require('../../controllers/right.ctrl')
 
-role_route.post('/',role_ctrl.postRight)
+right_route.post('/', right_ctrl.postRight)
+right_route.get('/:email', right_ctrl.getSingleRight)
 
-module.exports = role_route
+module.exports = right_route
