@@ -5,7 +5,7 @@ module.exports.postRight = (req,res,next)=> {
     const right = new Right(data)
     right.save()
     .then(()=>{
-        res.status(201).json({success: true,role})
+        res.status(201).json({success: true,right})
     }).catch((err) => error.ErrorHandler(501,err.message,res))
 }
 
