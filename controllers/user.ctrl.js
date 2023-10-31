@@ -113,6 +113,18 @@ module.exports.deleteUser = (req, res, next) => {
         .catch(err => { error.ErrorHandler(501, err.message, res) });
 }
 
+module.exports.unwantedUser = (req, res, next) => {
+    const userId = req.params.userId;
+    const userDetail = JSON.parse(req.cookies.user)
+    const user = User.findByIdAndDelete(userId)
+    let html = emailTemplate.deleteAccountEmailer()
+    user.then(() => {
+        sendMail(userDetail.email, 'User Account Deleted Succussefully', html)
+        res.status(201).json({ success: true, message: "User Deleted Successfuly" })
+    })
+        .catch(err => { error.ErrorHandler(501, err.message, res) });
+}
+
 // GET USER LIST
 module.exports.getUsers = (req, res, next) => {
     if (req.cookies.tokken) {

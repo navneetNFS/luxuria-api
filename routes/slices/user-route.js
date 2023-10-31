@@ -40,6 +40,7 @@ user_route.put('/edit-user/:userId', authentication, isVerified(true), user_ctrl
 
 // Delete User
 user_route.delete('/delete-user/:userId', authentication, isVerified(true), user_ctrl.deleteUser)
+user_route.delete('/unwanted-user/:userId', authentication, isVerified(true), user_ctrl.unwantedUser)
 
 // Reset Password
 user_route.post('/reset-password/email', authentication, isVerified(true), user_ctrl.resetPwdEmail)

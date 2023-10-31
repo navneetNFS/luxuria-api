@@ -1,10 +1,15 @@
 const Right = require('../models/right.mdl');
 const error = require('../middleware/error');
+const sendMail = require('../util/sendMail');
+const emailTemplate = require('../util/html');
+
 module.exports.postRight = (req,res,next)=> {
     const data = req.body
+    let html = emailTemplate.rightsAssigned()
     const right = new Right(data)
     right.save()
     .then(()=>{
+        sendMail(right.email, 'Rights Granted', html)
         res.status(201).json({success: true,right})
     }).catch((err) => error.ErrorHandler(501,err.message,res))
 }
